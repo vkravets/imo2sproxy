@@ -502,7 +502,9 @@ static void Imo2sproxy_Loop(IMO2SPROXY *hInst)
 		FD_ZERO(&fdListen);
 		FD_SET(hProxy->listen_fd, &fdListen);
 		socklen = sizeof(sock);
-		if (select (0, &fdListen, NULL, NULL, NULL) != SOCKET_ERROR && FD_ISSET(hProxy->listen_fd, &fdListen))
+		// If the socket is currently in the listen state, it will be marked as readable if an incoming connection request has been received
+		int max_socket_descriptor = hProxy->listen_fd+1; // ignored under WIN32, used under POSIX os
+		if (select (max_socket_descriptor, &fdListen, NULL, NULL, NULL) != SOCKET_ERROR && FD_ISSET(hProxy->listen_fd, &fdListen))
 		{
 			new_fd = accept(hProxy->listen_fd, (struct sockaddr *) &sock, &socklen); 
 			if (hProxy->pCfg->bVerbose && hProxy->pCfg->fpLog)
